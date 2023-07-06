@@ -1,21 +1,28 @@
-import { ethers } from "ethers";
-export function loadDeployment(contractName, networkId, signer) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports._loadDeployments = exports._contractFromDeployment = exports.loadAllDeployments = exports.loadDeployment = void 0;
+const ethers_1 = require("ethers");
+function loadDeployment(contractName, networkId, signer) {
     const deployments = _loadDeployments(networkId);
     if (!deployments[contractName])
         throw new Error(`Can't find deployment for ${contractName} in network ${networkId}`);
     return _contractFromDeployment(deployments[contractName], signer);
 }
-export function loadAllDeployments(networkId, signer) {
+exports.loadDeployment = loadDeployment;
+function loadAllDeployments(networkId, signer) {
     const deployments = _loadDeployments(networkId);
     const result = {};
     for (const name of Object.keys(deployments))
         result[name] = _contractFromDeployment(deployments[name], signer);
     return result;
 }
-export function _contractFromDeployment(deployment, signer) {
-    return new ethers.Contract(deployment.address, deployment.abi, signer);
+exports.loadAllDeployments = loadAllDeployments;
+function _contractFromDeployment(deployment, signer) {
+    return new ethers_1.ethers.Contract(deployment.address, deployment.abi, signer);
 }
-export function _loadDeployments(chainId) {
+exports._contractFromDeployment = _contractFromDeployment;
+function _loadDeployments(chainId) {
     return require(`../deployments/${chainId}.json`);
 }
+exports._loadDeployments = _loadDeployments;
 //# sourceMappingURL=deployments.js.map

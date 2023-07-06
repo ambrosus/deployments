@@ -1,9 +1,35 @@
-import * as fs from "fs";
-import { _contractFromDeployment, _loadDeployments, } from "./deployments";
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deploy = void 0;
+const fs = __importStar(require("fs"));
+const deployments_1 = require("./deployments");
 // @ts-ignore
-import { artifacts, ethers, upgrades } from "hardhat";
-import * as path from "path";
-import { getFullyQualifiedName } from "hardhat/utils/contract-names";
+const hardhat_1 = require("hardhat");
+const path = __importStar(require("path"));
+const contract_names_1 = require("hardhat/utils/contract-names");
 /**
  * @param contractName - The name under which to save the contract. Must be unique.
  * @param networkId - Network chain id used as filename in deployments folder.
@@ -14,21 +40,21 @@ import { getFullyQualifiedName } from "hardhat/utils/contract-names";
  * @param upgradeableProxy - Deploy contract as upgradeable proxy
  * @returns Deployed contract or contract loaded from deployments
  */
-export async function deploy(contractName, networkId, artifactName, deployArgs, signer, loadIfAlreadyDeployed = false, upgradeableProxy = false) {
-    const deployments = _loadDeployments(networkId);
+async function deploy(contractName, networkId, artifactName, deployArgs, signer, loadIfAlreadyDeployed = false, upgradeableProxy = false) {
+    const deployments = (0, deployments_1._loadDeployments)(networkId);
     if (deployments[contractName]) {
         if (loadIfAlreadyDeployed) {
             console.log(`Already deployed ${contractName}`);
-            return _contractFromDeployment(deployments[contractName], signer);
+            return (0, deployments_1._contractFromDeployment)(deployments[contractName], signer);
         }
         throw new Error(`Already deployed ${contractName}`);
     }
-    const factory = await ethers.getContractFactory(artifactName);
-    const artifact = await artifacts.readArtifact(artifactName);
-    const fullyQualifiedName = getFullyQualifiedName(artifact.sourceName, artifact.contractName);
+    const factory = await hardhat_1.ethers.getContractFactory(artifactName);
+    const artifact = await hardhat_1.artifacts.readArtifact(artifactName);
+    const fullyQualifiedName = (0, contract_names_1.getFullyQualifiedName)(artifact.sourceName, artifact.contractName);
     console.log(`deploying ${contractName} in network ${networkId}...`);
     const contract = upgradeableProxy
-        ? await upgrades.deployProxy(factory, deployArgs)
+        ? await hardhat_1.upgrades.deployProxy(factory, deployArgs)
         : await factory.deploy(...deployArgs);
     await contract.deployed();
     const deployment = {
@@ -38,7 +64,7 @@ export async function deploy(contractName, networkId, artifactName, deployArgs, 
         fullyQualifiedName: fullyQualifiedName,
     };
     if (upgradeableProxy) {
-        const implAddr = await upgrades.erc1967.getImplementationAddress(contract.address);
+        const implAddr = await hardhat_1.upgrades.erc1967.getImplementationAddress(contract.address);
         console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
         deployment.proxy = {
             implementation: implAddr,
@@ -53,4 +79,5 @@ export async function deploy(contractName, networkId, artifactName, deployArgs, 
     fs.writeFileSync(deploymentPath, JSON.stringify(deployments, null, 2));
     return contract;
 }
+exports.deploy = deploy;
 //# sourceMappingURL=deploy.js.map

@@ -1,11 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sourcifyOne = exports.sourcifyAll = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
-import { _loadDeployments } from "./deployments";
+const contract_names_1 = require("hardhat/utils/contract-names");
+const deployments_1 = require("./deployments");
 const ENDPOINT = "https://sourcify.ambrosus.io/";
-export async function sourcifyAll(hre) {
+async function sourcifyAll(hre) {
     // @ts-ignore
     const { chainId } = await hre.ethers.getDefaultProvider().getNetwork();
-    const deployments = _loadDeployments(chainId);
+    const deployments = (0, deployments_1._loadDeployments)(chainId);
     for (const [contractName, deployment] of Object.entries(deployments))
         if (deployment.proxy) {
             await sourcifyOne(hre, deployment.proxy.fullyQualifiedName, deployment.address, chainId, contractName + " Proxy");
@@ -15,7 +18,8 @@ export async function sourcifyAll(hre) {
             await sourcifyOne(hre, deployment.fullyQualifiedName, deployment.address, chainId, contractName);
         }
 }
-export async function sourcifyOne(hre, fullyQualifiedName, address, chainId, name) {
+exports.sourcifyAll = sourcifyAll;
+async function sourcifyOne(hre, fullyQualifiedName, address, chainId, name) {
     name = name || fullyQualifiedName;
     if (await isVerified(address, chainId)) {
         console.log(`Already verified: ${name} (${address})`);
@@ -34,6 +38,7 @@ export async function sourcifyOne(hre, fullyQualifiedName, address, chainId, nam
         console.error(`  Failed to verify ${fullyQualifiedName} (${address})`, (e.response && JSON.stringify(e.response.data)) || e);
     }
 }
+exports.sourcifyOne = sourcifyOne;
 // INTERNAL
 async function isVerified(address, chainId) {
     const checkResponse = await fetch(`${ENDPOINT}checkByAddresses?addresses=${address.toLowerCase()}&chainIds=${chainId}`).then((r) => r.json());
@@ -56,7 +61,7 @@ async function verify(chainId, address, metadata) {
 }
 async function loadMetadata(hre, fullyQualifiedName) {
     const buildInfo = await getBuildInfo(hre, fullyQualifiedName);
-    const { sourceName, contractName } = parseFullyQualifiedName(fullyQualifiedName);
+    const { sourceName, contractName } = (0, contract_names_1.parseFullyQualifiedName)(fullyQualifiedName);
     const metadataStr = buildInfo.output.contracts[sourceName][contractName].metadata;
     if (!metadataStr)
         throw `No metadata for contract ${fullyQualifiedName}`;
