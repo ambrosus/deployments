@@ -48,5 +48,5 @@ export function _contractFromDeployment(
 export function _loadDeployments(chainId: number): {
   [name: string]: Deployment;
 } {
-  return require(`../../airdao-node-contracts/deployments/${chainId}.json`);
+  return require(`../../../deployments/${chainId}.json`);
 }
