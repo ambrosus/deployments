@@ -3,13 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf dist && tsc -p tsconfig.json && ln -sf /Users/serezhaolshanivskyi/WebstormProjects/deployments /Users/serezhaolshanivskyi/WebstormProjects/airdao-node-contracts/node_modules"
   },
-  "exports": {
-    "./sourcify": "./dist/src/sourcify.js",
-    ".": "./dist"
-  },
-  "type": "module",
   "author": "",
   "license": "ISC",
   "peerDependencies": {

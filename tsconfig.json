@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "target": "es2020",
-    "module": "es2020",
+    "module": "commonjs",
     "esModuleInterop": true,
     "moduleResolution": "node",
     "outDir": "dist",
     "sourceMap": true
   },
-  "include": ["./src/*.ts", "./*.ts"],
+  "include": ["src"],
   "exclude": ["node_modules"],
   "files": [
     "./src/hardhat.config.ts"
