@@ -48,6 +48,5 @@ export function _contractFromDeployment(
 export function _loadDeployments(chainId: number): {
   [name: string]: Deployment;
 } {
-  console.log("HERE!");
   return require(`../../../deployments/${chainId}.json`);
 }
