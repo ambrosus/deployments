@@ -1,9 +1,17 @@
 import { ContractFactory, Signer } from "ethers";
-import fs from "fs";
-import { _contractFromDeployment, _loadDeployments, Deployment } from "./deployments";
-import { GetARGsTypeFromFactory, GetContractTypeFromFactory } from "./common-types";
+import * as fs from "fs";
+import {
+  _contractFromDeployment,
+  _loadDeployments,
+  Deployment,
+} from "./deployments";
+import {
+  GetARGsTypeFromFactory,
+  GetContractTypeFromFactory,
+} from "./common-types";
+// @ts-ignore
 import { artifacts, ethers, upgrades } from "hardhat";
-import path from "path";
+import * as path from "path";
 import { getFullyQualifiedName } from "hardhat/utils/contract-names";
 
 // this file use method from hardhat, so
@@ -40,14 +48,20 @@ export async function deploy<N extends ContractFactory>(
   if (deployments[contractName]) {
     if (loadIfAlreadyDeployed) {
       console.log(`Already deployed ${contractName}`);
-      return _contractFromDeployment(deployments[contractName], signer) as GetContractTypeFromFactory<N>;
+      return _contractFromDeployment(
+        deployments[contractName],
+        signer
+      ) as GetContractTypeFromFactory<N>;
     }
     throw new Error(`Already deployed ${contractName}`);
   }
 
   const factory = await ethers.getContractFactory(artifactName);
   const artifact = await artifacts.readArtifact(artifactName);
-  const fullyQualifiedName = getFullyQualifiedName(artifact.sourceName, artifact.contractName);
+  const fullyQualifiedName = getFullyQualifiedName(
+    artifact.sourceName,
+    artifact.contractName
+  );
 
   console.log(`deploying ${contractName} in network ${networkId}...`);
 
@@ -65,8 +79,15 @@ export async function deploy<N extends ContractFactory>(
   };
 
   if (upgradeableProxy) {
-    const implAddr = await upgrades.erc1967.getImplementationAddress(contract.address);
-    console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
+    const implAddr = await upgrades.erc1967.getImplementationAddress(
+      contract.address
+    );
+    console.log(
+      `deployed ${contractName} at`,
+      contract.address,
+      "implementation at",
+      implAddr
+    );
 
     deployment.proxy = {
       implementation: implAddr,
@@ -79,7 +100,10 @@ export async function deploy<N extends ContractFactory>(
 
   deployments[contractName] = deployment;
 
-  const deploymentPath = path.resolve(__dirname, `../deployments/${networkId}.json`);
+  const deploymentPath = path.resolve(
+    __dirname,
+    `../deployments/${networkId}.json`
+  );
   fs.writeFileSync(deploymentPath, JSON.stringify(deployments, null, 2));
 
   return contract as GetContractTypeFromFactory<N>;

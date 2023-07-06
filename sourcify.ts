@@ -1,20 +1,39 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 import { _loadDeployments } from "./deployments";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const ENDPOINT = "https://sourcify.ambrosus.io/";
 
 export async function sourcifyAll(hre: HardhatRuntimeEnvironment) {
+  // @ts-ignore
   const { chainId } = await hre.ethers.getDefaultProvider().getNetwork();
   const deployments = _loadDeployments(chainId);
 
   for (const [contractName, deployment] of Object.entries(deployments))
     if (deployment.proxy) {
-      await sourcifyOne(hre, deployment.proxy.fullyQualifiedName, deployment.address, chainId, contractName + " Proxy");
-      await sourcifyOne(hre, deployment.fullyQualifiedName, deployment.proxy.implementation, chainId, contractName);
+      await sourcifyOne(
+        hre,
+        deployment.proxy.fullyQualifiedName,
+        deployment.address,
+        chainId,
+        contractName + " Proxy"
+      );
+      await sourcifyOne(
+        hre,
+        deployment.fullyQualifiedName,
+        deployment.proxy.implementation,
+        chainId,
+        contractName
+      );
     } else {
-      await sourcifyOne(hre, deployment.fullyQualifiedName, deployment.address, chainId, contractName);
+      await sourcifyOne(
+        hre,
+        deployment.fullyQualifiedName,
+        deployment.address,
+        chainId,
+        contractName
+      );
     }
 }
 
@@ -37,7 +56,8 @@ export async function sourcifyOne(
     const metadata = await loadMetadata(hre, fullyQualifiedName);
     const result = await verify(chainId, address, metadata);
     if (result == "perfect") console.info(`  Contract ${name} is now verified`);
-    if (result == "partial") console.warn(`  Contract ${name} is now partial verified`);
+    if (result == "partial")
+      console.warn(`  Contract ${name} is now partial verified`);
   } catch (e) {
     console.error(
       `  Failed to verify ${fullyQualifiedName} (${address})`,
@@ -56,7 +76,11 @@ async function isVerified(address: string, chainId: number): Promise<boolean> {
   return checkResponse[0].status === "perfect";
 }
 
-async function verify(chainId: number, address: string, metadata: string): Promise<string> {
+async function verify(
+  chainId: number,
+  address: string,
+  metadata: string
+): Promise<string> {
   const data = {
     address: address,
     chain: chainId.toString(),
@@ -73,23 +97,32 @@ async function verify(chainId: number, address: string, metadata: string): Promi
   return submissionResponse.result[0].status;
 }
 
-async function loadMetadata(hre: HardhatRuntimeEnvironment, fullyQualifiedName: string): Promise<string> {
+async function loadMetadata(
+  hre: HardhatRuntimeEnvironment,
+  fullyQualifiedName: string
+): Promise<string> {
   const buildInfo = await getBuildInfo(hre, fullyQualifiedName);
-  const { sourceName, contractName } = parseFullyQualifiedName(fullyQualifiedName);
+  const { sourceName, contractName } =
+    parseFullyQualifiedName(fullyQualifiedName);
 
-  const metadataStr = buildInfo.output.contracts[sourceName][contractName].metadata;
+  const metadataStr =
+    buildInfo.output.contracts[sourceName][contractName].metadata;
   if (!metadataStr) throw `No metadata for contract ${fullyQualifiedName}`;
 
   const metadata = JSON.parse(metadataStr);
   Object.keys(metadata.sources).forEach((contractSource: string) => {
-    metadata.sources[contractSource].content = buildInfo?.input.sources[contractSource].content;
+    metadata.sources[contractSource].content =
+      buildInfo?.input.sources[contractSource].content;
     delete metadata.sources[contractSource].urls;
   });
 
   return JSON.stringify(metadata);
 }
 
-async function getBuildInfo(hre: HardhatRuntimeEnvironment, fullyQualifiedName: string): Promise<any> {
+async function getBuildInfo(
+  hre: HardhatRuntimeEnvironment,
+  fullyQualifiedName: string
+): Promise<any> {
   if (
     fullyQualifiedName ==
     "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy"
