@@ -22,7 +22,7 @@ function _contractFromDeployment(deployment, signer) {
 }
 exports._contractFromDeployment = _contractFromDeployment;
 function _loadDeployments(chainId) {
-    return require(`../../airdao-node-contracts/deployments/${chainId}.json`);
+    return require(`../../../deployments/${chainId}.json`);
 }
 exports._loadDeployments = _loadDeployments;
 //# sourceMappingURL=deployments.js.map
