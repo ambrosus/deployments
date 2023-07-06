@@ -1,4 +1,4 @@
-import { deploy } from "./deploy";
-import { loadAllDeployments, loadDeployment } from "./deployments";
+import { deploy } from "./src/deploy";
+import { loadAllDeployments, loadDeployment } from "./src/deployments";
 
 export { deploy, loadDeployment, loadAllDeployments };

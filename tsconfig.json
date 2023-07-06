@@ -9,6 +9,8 @@
   },
   "include": ["./*.ts"],
   "exclude": ["node_modules"],
-  "files": ["./hardhat.config.ts"]
+  "files": [
+    "./src/hardhat.config.ts"
+  ]
 }
 

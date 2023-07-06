@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sourcifyOne = exports.sourcifyAll = void 0;
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const contract_names_1 = require("hardhat/utils/contract-names");
-const deployments_1 = require("./deployments");
+const deployments_1 = require("./src/deployments");
 const ENDPOINT = "https://sourcify.ambrosus.io/";
 async function sourcifyAll(hre) {
     // @ts-ignore
