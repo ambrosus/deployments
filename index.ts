@@ -1,11 +1,4 @@
-import { deploy } from './deploy';
-import { loadAllDeployments, loadDeployment } from './deployments';
-import { sourcifyAll, sourcifyOne } from './sourcify';
+import { deploy } from "./deploy";
+import { loadAllDeployments, loadDeployment } from "./deployments";
 
-export {
-  deploy,
-  loadDeployment,
-  loadAllDeployments,
-  sourcifyAll,
-  sourcifyOne
-}
+export { deploy, loadDeployment, loadAllDeployments };
