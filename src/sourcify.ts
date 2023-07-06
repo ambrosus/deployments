@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
-import { _loadDeployments } from "./src/deployments";
+import { _loadDeployments } from "./deployments";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const ENDPOINT = "https://sourcify.ambrosus.io/";
