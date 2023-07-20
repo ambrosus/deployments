@@ -1,12 +1,12 @@
-import { _loadDeployments } from "./deployments";
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
+import {_loadDeployments} from "./deployments";
+import {HardhatRuntimeEnvironment} from "hardhat/types";
+import {parseFullyQualifiedName} from "hardhat/utils/contract-names";
 
 const ENDPOINT = "https://sourcify.ambrosus.io/";
 
 export async function sourcifyAll(hre: HardhatRuntimeEnvironment) {
   // @ts-ignore
-  const { chainId } = await hre.ethers.provider.getNetwork();
+  const {chainId} = await hre.ethers.provider.getNetwork();
   const deployments = _loadDeployments(chainId);
 
   for (const [contractName, deployment] of Object.entries(deployments))
@@ -83,12 +83,12 @@ async function verify(
   const data = {
     address: address,
     chain: chainId.toString(),
-    files: { "metadata.json": metadata },
+    files: {"metadata.json": metadata},
   };
 
   const submissionResponse = await fetch(ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {"Content-Type": "application/json"},
     body: JSON.stringify(data),
   }).then((r) => r.json());
 
@@ -101,7 +101,7 @@ async function loadMetadata(
   fullyQualifiedName: string
 ): Promise<string> {
   const buildInfo = await getBuildInfo(hre, fullyQualifiedName);
-  const { sourceName, contractName } =
+  const {sourceName, contractName} =
     parseFullyQualifiedName(fullyQualifiedName);
 
   const metadataStr =
@@ -118,15 +118,8 @@ async function loadMetadata(
   return JSON.stringify(metadata);
 }
 
-async function getBuildInfo(
-  hre: HardhatRuntimeEnvironment,
-  fullyQualifiedName: string
-): Promise<any> {
-  if (
-    fullyQualifiedName ==
-    "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy"
-  )
+async function getBuildInfo(hre: HardhatRuntimeEnvironment, fullyQualifiedName: string): Promise<any> {
+  if (fullyQualifiedName.includes("@openzeppelin/contracts/proxy/"))
     return require("@openzeppelin/upgrades-core/artifacts/build-info.json");
-
   return await hre.artifacts.getBuildInfo(fullyQualifiedName);
 }

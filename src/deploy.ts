@@ -37,7 +37,7 @@ export async function deploy<N extends ContractFactory>(
     signer,
     loadIfAlreadyDeployed,
     isUpgradeableProxy,
-    proxyOptions = {}
+    proxyOptions = {kind: "uups"}
   }: DeployOptions<N>
 ): Promise<GetContractTypeFromFactory<N>> {
   const {artifacts, ethers, upgrades} = await import("hardhat");
@@ -84,7 +84,10 @@ export async function deploy<N extends ContractFactory>(
     deployment.proxy = {
       implementation: implAddr,
       fullyQualifiedName:
-        "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
+        {
+          transparent: "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
+          uups: "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol:ERC1967Proxy"
+        }[proxyOptions.kind],
     };
   } else {
     console.log(`deployed ${contractName} at`, contract.address);
