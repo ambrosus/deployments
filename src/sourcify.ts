@@ -6,7 +6,7 @@ const ENDPOINT = "https://sourcify.ambrosus.io/";
 
 export async function sourcifyAll(hre: HardhatRuntimeEnvironment) {
   // @ts-ignore
-  const { chainId } = await hre.ethers.getDefaultProvider().getNetwork();
+  const { chainId } = await hre.ethers.provider.getNetwork();
   const deployments = _loadDeployments(chainId);
 
   for (const [contractName, deployment] of Object.entries(deployments))

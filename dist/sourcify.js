@@ -6,7 +6,7 @@ const contract_names_1 = require("hardhat/utils/contract-names");
 const ENDPOINT = "https://sourcify.ambrosus.io/";
 async function sourcifyAll(hre) {
     // @ts-ignore
-    const { chainId } = await hre.ethers.getDefaultProvider().getNetwork();
+    const { chainId } = await hre.ethers.provider.getNetwork();
     const deployments = (0, deployments_1._loadDeployments)(chainId);
     for (const [contractName, deployment] of Object.entries(deployments))
         if (deployment.proxy) {
