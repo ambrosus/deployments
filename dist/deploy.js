@@ -3,8 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deploy = void 0;
 const fs = require("fs");
 const deployments_1 = require("./deployments");
-// @ts-ignore
-const hardhat_1 = require("hardhat");
 const path = require("path");
 const contract_names_1 = require("hardhat/utils/contract-names");
 /**
@@ -18,6 +16,8 @@ const contract_names_1 = require("hardhat/utils/contract-names");
  * @returns Deployed contract or contract loaded from deployments
  */
 async function deploy(contractName, networkId, artifactName, deployArgs, signer, loadIfAlreadyDeployed = false, upgradeableProxy = false) {
+    // @ts-ignore
+    import { artifacts, ethers, upgrades } from "hardhat";
     const deployments = (0, deployments_1._loadDeployments)(networkId);
     if (deployments[contractName]) {
         if (loadIfAlreadyDeployed) {
@@ -57,3 +57,4 @@ async function deploy(contractName, networkId, artifactName, deployArgs, signer,
     return contract;
 }
 exports.deploy = deploy;
+//# sourceMappingURL=deploy.js.map

@@ -9,8 +9,6 @@ import {
   GetARGsTypeFromFactory,
   GetContractTypeFromFactory,
 } from "./common-types";
-// @ts-ignore
-import { artifacts, ethers, upgrades } from "hardhat";
 import * as path from "path";
 import { getFullyQualifiedName } from "hardhat/utils/contract-names";
 
@@ -43,6 +41,9 @@ export async function deploy<N extends ContractFactory>(
   loadIfAlreadyDeployed = false,
   upgradeableProxy = false
 ): Promise<GetContractTypeFromFactory<N>> {
+  // @ts-ignore
+  import { artifacts, ethers, upgrades } from "hardhat";
+
   const deployments = _loadDeployments(networkId);
 
   if (deployments[contractName]) {

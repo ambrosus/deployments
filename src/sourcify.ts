@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 import { _loadDeployments } from "./deployments";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
@@ -101,6 +99,9 @@ async function loadMetadata(
   hre: HardhatRuntimeEnvironment,
   fullyQualifiedName: string
 ): Promise<string> {
+  // @ts-ignore
+  import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
+
   const buildInfo = await getBuildInfo(hre, fullyQualifiedName);
   const { sourceName, contractName } =
     parseFullyQualifiedName(fullyQualifiedName);
