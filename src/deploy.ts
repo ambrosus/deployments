@@ -42,7 +42,7 @@ export async function deploy<N extends ContractFactory>(
   upgradeableProxy = false
 ): Promise<GetContractTypeFromFactory<N>> {
   // @ts-ignore
-  import { artifacts, ethers, upgrades } from "hardhat";
+  const { artifacts, ethers, upgrades } = await import("hardhat");
 
   const deployments = _loadDeployments(networkId);
 

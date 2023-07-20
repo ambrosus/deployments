@@ -17,7 +17,7 @@ const contract_names_1 = require("hardhat/utils/contract-names");
  */
 async function deploy(contractName, networkId, artifactName, deployArgs, signer, loadIfAlreadyDeployed = false, upgradeableProxy = false) {
     // @ts-ignore
-    import { artifacts, ethers, upgrades } from "hardhat";
+    const { artifacts, ethers, upgrades } = await Promise.resolve().then(() => require("hardhat"));
     const deployments = (0, deployments_1._loadDeployments)(networkId);
     if (deployments[contractName]) {
         if (loadIfAlreadyDeployed) {
@@ -26,12 +26,12 @@ async function deploy(contractName, networkId, artifactName, deployArgs, signer,
         }
         throw new Error(`Already deployed ${contractName}`);
     }
-    const factory = await hardhat_1.ethers.getContractFactory(artifactName);
-    const artifact = await hardhat_1.artifacts.readArtifact(artifactName);
+    const factory = await ethers.getContractFactory(artifactName);
+    const artifact = await artifacts.readArtifact(artifactName);
     const fullyQualifiedName = (0, contract_names_1.getFullyQualifiedName)(artifact.sourceName, artifact.contractName);
     console.log(`deploying ${contractName} in network ${networkId}...`);
     const contract = upgradeableProxy
-        ? await hardhat_1.upgrades.deployProxy(factory, deployArgs)
+        ? await upgrades.deployProxy(factory, deployArgs)
         : await factory.deploy(...deployArgs);
     await contract.deployed();
     const deployment = {
@@ -41,7 +41,7 @@ async function deploy(contractName, networkId, artifactName, deployArgs, signer,
         fullyQualifiedName: fullyQualifiedName,
     };
     if (upgradeableProxy) {
-        const implAddr = await hardhat_1.upgrades.erc1967.getImplementationAddress(contract.address);
+        const implAddr = await upgrades.erc1967.getImplementationAddress(contract.address);
         console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
         deployment.proxy = {
             implementation: implAddr,

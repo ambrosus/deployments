@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sourcifyOne = exports.sourcifyAll = void 0;
 const deployments_1 = require("./deployments");
+const contract_names_1 = require("hardhat/utils/contract-names");
 const ENDPOINT = "https://sourcify.ambrosus.io/";
 async function sourcifyAll(hre) {
     // @ts-ignore
@@ -58,8 +59,6 @@ async function verify(chainId, address, metadata) {
     return submissionResponse.result[0].status;
 }
 async function loadMetadata(hre, fullyQualifiedName) {
-    // @ts-ignore
-    import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
     const buildInfo = await getBuildInfo(hre, fullyQualifiedName);
     const { sourceName, contractName } = (0, contract_names_1.parseFullyQualifiedName)(fullyQualifiedName);
     const metadataStr = buildInfo.output.contracts[sourceName][contractName].metadata;
