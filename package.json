@@ -1,9 +1,10 @@
 {
   "name": "deployments",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "",
   "files": [
-    "/dist/*"
+    "/dist",
+    "/src"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.json"
