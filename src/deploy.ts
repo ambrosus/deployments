@@ -20,7 +20,7 @@ interface DeployOptions<Factory> {
   networkId?: number,  // Network chain id used as filename in deployments folder.
   artifactName: string,  // Name of the contract artifact. For example, ERC20.
   deployArgs: GetDeployArgsType<Factory>,  // Deploy arguments
-  signer?: Signer,  // Signer, that will deploy contract (or with witch contract will be loaded from deployment)
+  signer: Signer,  // Signer, that will deploy contract (or with witch contract will be loaded from deployment)
   loadIfAlreadyDeployed?: boolean, // Load contract if it already deployed; Otherwise throw exception
 
   isUpgradeableProxy?: boolean,  // Deploy contract as upgradeable proxy

@@ -10,7 +10,7 @@ interface DeployOptions<Factory> {
     networkId?: number;
     artifactName: string;
     deployArgs: GetDeployArgsType<Factory>;
-    signer?: Signer;
+    signer: Signer;
     loadIfAlreadyDeployed?: boolean;
     isUpgradeableProxy?: boolean;
     proxyOptions?: DeployProxyOptions;
