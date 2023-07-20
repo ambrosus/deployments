@@ -1,58 +1,54 @@
-import { ContractFactory, Signer } from "ethers";
+import {ContractFactory, Signer} from "ethers";
 import * as fs from "fs";
-import {
-  _contractFromDeployment,
-  _loadDeployments,
-  Deployment,
-} from "./deployments";
-import {
-  GetARGsTypeFromFactory,
-  GetContractTypeFromFactory,
-} from "./common-types";
+import {_contractFromDeployment, _loadDeployments, Deployment,} from "./deployments";
+import {GetARGsTypeFromFactory, GetContractTypeFromFactory,} from "./common-types";
 import * as path from "path";
-import { getFullyQualifiedName } from "hardhat/utils/contract-names";
+import {getFullyQualifiedName} from "hardhat/utils/contract-names";
+import type {DeployProxyOptions} from "@openzeppelin/hardhat-upgrades/src/utils";
 
-// this file use method from hardhat, so
-// don't include it into SDK build
 
-// returns initialize method arguments type if contract has initialize method
+// returns initialize method arguments type if contract has `initialize` method
 // otherwise returns constructor arguments type
 type Initializable = { initialize(...a: any[]): Promise<any> };
 type GetDeployArgsType<T> = GetContractTypeFromFactory<T> extends Initializable
   ? Parameters<GetContractTypeFromFactory<T>["initialize"]>
   : GetARGsTypeFromFactory<T>;
 
-/**
- * @param contractName - The name under which to save the contract. Must be unique.
- * @param networkId - Network chain id used as filename in deployments folder.
- * @param artifactName - Name of the contract artifact. For example, ERC20.
- * @param deployArgs - Deploy arguments
- * @param signer - Signer, that will deploy contract (or with witch contract will be loaded from deployment)
- * @param loadIfAlreadyDeployed - Load contract if it already deployed; Otherwise throw exception
- * @param upgradeableProxy - Deploy contract as upgradeable proxy
- * @returns Deployed contract or contract loaded from deployments
- */
+
+interface DeployOptions<Factory> {
+  contractName: string,  // The name under which to save the contract. Must be unique.
+  networkId?: number,  // Network chain id used as filename in deployments folder.
+  artifactName: string,  // Name of the contract artifact. For example, ERC20.
+  deployArgs: GetDeployArgsType<Factory>,  // Deploy arguments
+  signer?: Signer,  // Signer, that will deploy contract (or with witch contract will be loaded from deployment)
+  loadIfAlreadyDeployed?: boolean, // Load contract if it already deployed; Otherwise throw exception
+
+  isUpgradeableProxy?: boolean,  // Deploy contract as upgradeable proxy
+  proxyOptions?: DeployProxyOptions,  // Openzeppelin upgrades deploy options
+}
+
+
 export async function deploy<N extends ContractFactory>(
-  contractName: string,
-  networkId: number,
-  artifactName: string,
-  deployArgs: GetDeployArgsType<N>,
-  signer: Signer,
-  loadIfAlreadyDeployed = false,
-  upgradeableProxy = false
+  {
+    contractName,
+    networkId,
+    artifactName,
+    deployArgs,
+    signer,
+    loadIfAlreadyDeployed,
+    isUpgradeableProxy,
+    proxyOptions = {}
+  }: DeployOptions<N>
 ): Promise<GetContractTypeFromFactory<N>> {
-  // @ts-ignore
-  const { artifacts, ethers, upgrades } = await import("hardhat");
+  const {artifacts, ethers, upgrades} = await import("hardhat");
+  if (!networkId) networkId = (await ethers.provider.getNetwork()).chainId;
 
   const deployments = _loadDeployments(networkId);
 
   if (deployments[contractName]) {
     if (loadIfAlreadyDeployed) {
-      console.log(`Already deployed ${contractName}`);
-      return _contractFromDeployment(
-        deployments[contractName],
-        signer
-      ) as GetContractTypeFromFactory<N>;
+      console.log(`Loaded already deployed ${contractName}`);
+      return _contractFromDeployment(deployments[contractName], signer) as GetContractTypeFromFactory<N>;
     }
     throw new Error(`Already deployed ${contractName}`);
   }
@@ -66,8 +62,8 @@ export async function deploy<N extends ContractFactory>(
 
   console.log(`deploying ${contractName} in network ${networkId}...`);
 
-  const contract = upgradeableProxy
-    ? await upgrades.deployProxy(factory, deployArgs)
+  const contract = isUpgradeableProxy
+    ? await upgrades.deployProxy(factory, deployArgs, proxyOptions)
     : await factory.deploy(...deployArgs);
 
   await contract.deployed();
@@ -79,16 +75,11 @@ export async function deploy<N extends ContractFactory>(
     fullyQualifiedName: fullyQualifiedName,
   };
 
-  if (upgradeableProxy) {
+  if (isUpgradeableProxy) {
     const implAddr = await upgrades.erc1967.getImplementationAddress(
       contract.address
     );
-    console.log(
-      `deployed ${contractName} at`,
-      contract.address,
-      "implementation at",
-      implAddr
-    );
+    console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
 
     deployment.proxy = {
       implementation: implAddr,

@@ -5,8 +5,10 @@
     "declaration": true,
     "sourceMap": true,
     "outDir": "./dist",
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   },
   "include": ["src"],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules"]
 }
 

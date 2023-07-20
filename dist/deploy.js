@@ -1,27 +1,41 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deploy = void 0;
-const fs = require("fs");
+const fs = __importStar(require("fs"));
 const deployments_1 = require("./deployments");
-const path = require("path");
+const path = __importStar(require("path"));
 const contract_names_1 = require("hardhat/utils/contract-names");
-/**
- * @param contractName - The name under which to save the contract. Must be unique.
- * @param networkId - Network chain id used as filename in deployments folder.
- * @param artifactName - Name of the contract artifact. For example, ERC20.
- * @param deployArgs - Deploy arguments
- * @param signer - Signer, that will deploy contract (or with witch contract will be loaded from deployment)
- * @param loadIfAlreadyDeployed - Load contract if it already deployed; Otherwise throw exception
- * @param upgradeableProxy - Deploy contract as upgradeable proxy
- * @returns Deployed contract or contract loaded from deployments
- */
-async function deploy(contractName, networkId, artifactName, deployArgs, signer, loadIfAlreadyDeployed = false, upgradeableProxy = false) {
-    // @ts-ignore
-    const { artifacts, ethers, upgrades } = await Promise.resolve().then(() => require("hardhat"));
+async function deploy({ contractName, networkId, artifactName, deployArgs, signer, loadIfAlreadyDeployed, isUpgradeableProxy, proxyOptions = {} }) {
+    const { artifacts, ethers, upgrades } = await Promise.resolve().then(() => __importStar(require("hardhat")));
+    if (!networkId)
+        networkId = (await ethers.provider.getNetwork()).chainId;
     const deployments = (0, deployments_1._loadDeployments)(networkId);
     if (deployments[contractName]) {
         if (loadIfAlreadyDeployed) {
-            console.log(`Already deployed ${contractName}`);
+            console.log(`Loaded already deployed ${contractName}`);
             return (0, deployments_1._contractFromDeployment)(deployments[contractName], signer);
         }
         throw new Error(`Already deployed ${contractName}`);
@@ -30,8 +44,8 @@ async function deploy(contractName, networkId, artifactName, deployArgs, signer,
     const artifact = await artifacts.readArtifact(artifactName);
     const fullyQualifiedName = (0, contract_names_1.getFullyQualifiedName)(artifact.sourceName, artifact.contractName);
     console.log(`deploying ${contractName} in network ${networkId}...`);
-    const contract = upgradeableProxy
-        ? await upgrades.deployProxy(factory, deployArgs)
+    const contract = isUpgradeableProxy
+        ? await upgrades.deployProxy(factory, deployArgs, proxyOptions)
         : await factory.deploy(...deployArgs);
     await contract.deployed();
     const deployment = {
@@ -40,7 +54,7 @@ async function deploy(contractName, networkId, artifactName, deployArgs, signer,
         deployTx: contract.deployTransaction.hash,
         fullyQualifiedName: fullyQualifiedName,
     };
-    if (upgradeableProxy) {
+    if (isUpgradeableProxy) {
         const implAddr = await upgrades.erc1967.getImplementationAddress(contract.address);
         console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
         deployment.proxy = {
