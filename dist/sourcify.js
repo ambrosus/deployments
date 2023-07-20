@@ -79,4 +79,3 @@ async function getBuildInfo(hre, fullyQualifiedName) {
         return require("@openzeppelin/upgrades-core/artifacts/build-info.json");
     return await hre.artifacts.getBuildInfo(fullyQualifiedName);
 }
-//# sourceMappingURL=sourcify.js.map
