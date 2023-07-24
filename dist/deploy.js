@@ -28,7 +28,7 @@ const fs = __importStar(require("fs"));
 const deployments_1 = require("./deployments");
 const path = __importStar(require("path"));
 const contract_names_1 = require("hardhat/utils/contract-names");
-async function deploy({ contractName, networkId, artifactName, deployArgs, signer, loadIfAlreadyDeployed, isUpgradeableProxy, proxyOptions = {} }) {
+async function deploy({ contractName, networkId, artifactName, deployArgs, signer, loadIfAlreadyDeployed, isUpgradeableProxy, proxyOptions = { kind: "uups" } }) {
     const { artifacts, ethers, upgrades } = await Promise.resolve().then(() => __importStar(require("hardhat")));
     if (!networkId)
         networkId = (await ethers.provider.getNetwork()).chainId;
@@ -59,7 +59,10 @@ async function deploy({ contractName, networkId, artifactName, deployArgs, signe
         console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
         deployment.proxy = {
             implementation: implAddr,
-            fullyQualifiedName: "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
+            fullyQualifiedName: {
+                transparent: "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
+                uups: "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol:ERC1967Proxy"
+            }[proxyOptions.kind],
         };
     }
     else {

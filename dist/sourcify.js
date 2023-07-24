@@ -73,8 +73,7 @@ async function loadMetadata(hre, fullyQualifiedName) {
     return JSON.stringify(metadata);
 }
 async function getBuildInfo(hre, fullyQualifiedName) {
-    if (fullyQualifiedName ==
-        "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy")
+    if (fullyQualifiedName.includes("@openzeppelin/contracts/proxy/"))
         return require("@openzeppelin/upgrades-core/artifacts/build-info.json");
     return await hre.artifacts.getBuildInfo(fullyQualifiedName);
 }
