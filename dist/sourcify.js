@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sourcifyOne = exports.sourcifyAll = void 0;
 const deployments_1 = require("./deployments");
 const contract_names_1 = require("hardhat/utils/contract-names");
-const ENDPOINT = "https://sourcify.ambrosus.io/";
+const ENDPOINT = process.env.SOURCIFY_API || "https://sourcify.ambrosus.io/";
 async function sourcifyAll(hre) {
     // @ts-ignore
     const { chainId } = await hre.ethers.provider.getNetwork();

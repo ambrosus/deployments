@@ -2,7 +2,7 @@ import {_loadDeployments} from "./deployments";
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {parseFullyQualifiedName} from "hardhat/utils/contract-names";
 
-const ENDPOINT = "https://sourcify.ambrosus.io/";
+const ENDPOINT = process.env.SOURCIFY_API || "https://sourcify.ambrosus.io/";
 
 export async function sourcifyAll(hre: HardhatRuntimeEnvironment) {
   // @ts-ignore
