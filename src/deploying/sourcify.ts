@@ -1,4 +1,4 @@
-import {_loadDeployments} from "./deployments";
+import {_loadDeployments} from "../deployments";
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {parseFullyQualifiedName} from "hardhat/utils/contract-names";
 

@@ -1,6 +1,6 @@
 import {ContractFactory, Signer} from "ethers";
 import * as fs from "fs";
-import {_contractFromDeployment, _loadDeployments, Deployment,} from "./deployments";
+import {_contractFromDeployment, _loadDeployments, Deployment,} from "../deployments";
 import {GetARGsTypeFromFactory, GetContractTypeFromFactory,} from "./common-types";
 import * as path from "path";
 import {getFullyQualifiedName} from "hardhat/utils/contract-names";
