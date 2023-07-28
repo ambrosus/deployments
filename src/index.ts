@@ -1,1 +1,1 @@
-export {loadAllDeployments, loadDeployment} from "./deployments"
+export {loadAllDeployments, loadAllDeploymentsFromFile, loadDeployment} from "./deployments"
