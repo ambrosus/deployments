@@ -48,6 +48,6 @@ export function _contractFromDeployment(deployment: Deployment, signer?: Signer)
 }
 
 export function _loadDeployments(chainId: number): Deployments {
-  const path = `../../../deployments/${chainId}.json` // захист від вебпаку
+  const path = `../../../../deployments/${chainId}.json` // захист від вебпаку
   return require(path);
 }

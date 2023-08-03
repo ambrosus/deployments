@@ -53,7 +53,7 @@ export async function deploy<N extends ContractFactory>(
     throw new Error(`Already deployed ${contractName}`);
   }
 
-  const factory = await ethers.getContractFactory(artifactName);
+  const factory = await ethers.getContractFactory(artifactName, signer);
   const artifact = await artifacts.readArtifact(artifactName);
   const fullyQualifiedName = getFullyQualifiedName(
     artifact.sourceName,
@@ -97,7 +97,7 @@ export async function deploy<N extends ContractFactory>(
 
   const deploymentPath = path.resolve(
     __dirname,
-    `../../../deployments/${networkId}.json`
+    `../../../../../deployments/${networkId}.json`
   );
   fs.writeFileSync(deploymentPath, JSON.stringify(deployments, null, 2));
 
