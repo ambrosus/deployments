@@ -14,7 +14,7 @@ export interface Deployment {
   };
 }
 
-export function loadDeployment(contractName: string, networkId: number, signer?: Signer): Contract {
+export function loadDeployment(contractName: string, networkId: bigint, signer?: Signer): Contract {
   const deployments = _loadDeployments(networkId);
   if (!deployments[contractName])
     throw new Error(
@@ -24,7 +24,7 @@ export function loadDeployment(contractName: string, networkId: number, signer?:
   return _contractFromDeployment(deployments[contractName], signer);
 }
 
-export function loadAllDeployments(networkId: number, signer?: Signer): DeploymentsContracts {
+export function loadAllDeployments(networkId: bigint, signer?: Signer): DeploymentsContracts {
   const deployments = _loadDeployments(networkId);
   const result: DeploymentsContracts = {};
 
@@ -47,7 +47,7 @@ export function _contractFromDeployment(deployment: Deployment, signer?: Signer)
   return new ethers.Contract(deployment.address, deployment.abi, signer);
 }
 
-export function _loadDeployments(chainId: number): Deployments {
+export function _loadDeployments(chainId: bigint): Deployments {
   const path = `../../../../deployments/${chainId}.json` // захист від вебпаку
   return require(path);
 }

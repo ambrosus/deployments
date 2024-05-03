@@ -20,11 +20,11 @@
   "author": "",
   "license": "ISC",
   "peerDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^2.0.1",
-    "@openzeppelin/contracts-upgradeable": "4.9.0",
-    "@openzeppelin/hardhat-upgrades": "^1.26.0",
-    "ethers": "^5.7.2",
-    "hardhat": "^2.12.6"
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts-upgradeable": "^5.0.2",
+    "@openzeppelin/hardhat-upgrades": "^3.1.0",
+    "ethers": "^6.0.0",
+    "hardhat": "^2.22.3"
   },
   "devDependencies": {
     "ts-node": "^10.9.1",

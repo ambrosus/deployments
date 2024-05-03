@@ -17,7 +17,7 @@ type GetDeployArgsType<T> = GetContractTypeFromFactory<T> extends Initializable
 
 interface DeployOptions<Factory> {
   contractName: string,  // The name under which to save the contract. Must be unique.
-  networkId?: number,  // Network chain id used as filename in deployments folder.
+  networkId?: bigint,  // Network chain id used as filename in deployments folder.
   artifactName: string,  // Name of the contract artifact. For example, ERC20.
   deployArgs: GetDeployArgsType<Factory>,  // Deploy arguments
   signer: Signer,  // Signer, that will deploy contract (or with witch contract will be loaded from deployment)
@@ -69,15 +69,15 @@ export async function deploy<N extends ContractFactory>(
   await contract.deployed();
 
   const deployment: Deployment = {
-    address: contract.address,
+    address: await contract.getAddress(),
     abi: contract.interface.format() as string[],
-    deployTx: contract.deployTransaction.hash,
+    deployTx: contract.deploymentTransaction().hash,
     fullyQualifiedName: fullyQualifiedName,
   };
 
   if (isUpgradeableProxy) {
     const implAddr = await upgrades.erc1967.getImplementationAddress(
-      contract.address
+      await contract.getAddress()
     );
     console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
 
