@@ -38,7 +38,7 @@ export async function upgrade<N extends ContractFactory>(
   console.log(`upgrading ${contractName} in network ${networkId}...`);
 
   const contract = await upgrades.upgradeProxy(deployment.address, factory, opts);
-  await contract.deployed();
+  await contract.waitForDeployment();
   const contractAddress = await contract.getAddress();
   const implAddr = await upgrades.erc1967.getImplementationAddress(
     contractAddress

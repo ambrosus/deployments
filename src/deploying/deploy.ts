@@ -66,10 +66,10 @@ export async function deploy<N extends ContractFactory>(
     ? await upgrades.deployProxy(factory, deployArgs, proxyOptions)
     : await factory.deploy(...deployArgs);
 
-  await contract.deployed();
-
+  await contract.waitForDeployment();
+  const contractAddress = await contract.getAddress();
   const deployment: Deployment = {
-    address: await contract.getAddress(),
+    address: contractAddress,
     abi: contract.interface.format() as string[],
     deployTx: contract.deploymentTransaction().hash,
     fullyQualifiedName: fullyQualifiedName,
@@ -77,9 +77,9 @@ export async function deploy<N extends ContractFactory>(
 
   if (isUpgradeableProxy) {
     const implAddr = await upgrades.erc1967.getImplementationAddress(
-      await contract.getAddress()
+      contractAddress
     );
-    console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
+    console.log(`deployed ${contractName} at`, contractAddress, "implementation at", implAddr);
 
     deployment.proxy = {
       implementation: implAddr,
@@ -90,7 +90,7 @@ export async function deploy<N extends ContractFactory>(
         }[proxyOptions.kind],
     };
   } else {
-    console.log(`deployed ${contractName} at`, contract.address);
+    console.log(`deployed ${contractName} at`, contractAddress);
   }
 
   deployments[contractName] = deployment;
