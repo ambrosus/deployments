@@ -11,14 +11,32 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-node@v4
         with:
-          node-version: "lts/*"
+          node-version: 'lts/*'
           check-latest: true
-          registry-url: "https://registry.npmjs.org"
-          scope: "@ambrosus"
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@ambrosus'
+      
       - run: npm install
       - run: npm run build
-      - run: npm publish --access public
+
+      - name: Determine npm tag
+        id: get_tag
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "::set-output name=tag::latest"
+          else
+            BRANCH_NAME=$(echo "${{ github.ref }}" | sed 's:.*/::')
+            if [ "${{ github.event_name }}" == "release" ]; then
+              TAG_NAME=$(echo "${{ github.event.release.tag_name }}" | sed 's/^v//')
+              echo "::set-output name=tag::ethers-${TAG_NAME}"
+            else
+              echo "::set-output name=tag::ethers-${BRANCH_NAME}"
+            fi
+          fi
+
+      - run: npm publish --tag ${{ steps.get_tag.outputs.tag }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
