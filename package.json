@@ -1,6 +1,6 @@
 {
   "name": "@airdao/deployments",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,9 @@
   },
   "typesVersions": {
     "*": {
-      "deploying": ["dist/deploying/index.d.ts"]
+      "deploying": [
+        "dist/deploying/index.d.ts"
+      ]
     }
   },
   "scripts": {
