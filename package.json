@@ -24,7 +24,7 @@
   "peerDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.1",
     "@openzeppelin/contracts-upgradeable": "^4.9.6",
-    "@openzeppelin/hardhat-upgrades": "^1.26.0",
+    "@openzeppelin/hardhat-upgrades": "^1.28.0",
     "ethers": "^5.7.2",
     "hardhat": "^2.12.6"
   },

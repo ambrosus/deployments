@@ -4,7 +4,7 @@ import {_contractFromDeployment, _loadDeployments, Deployment,} from "../deploym
 import {GetARGsTypeFromFactory, GetContractTypeFromFactory,} from "./common-types";
 import * as path from "path";
 import {getFullyQualifiedName} from "hardhat/utils/contract-names";
-import type {DeployProxyOptions} from "@openzeppelin/hardhat-upgrades/src/utils";
+import type {DeployProxyOptions} from "@openzeppelin/hardhat-upgrades/src/utils/options";
 
 
 // returns initialize method arguments type if contract has `initialize` method
@@ -40,7 +40,7 @@ export async function deploy<N extends ContractFactory>(
     proxyOptions = {kind: "uups"}
   }: DeployOptions<N>
 ): Promise<GetContractTypeFromFactory<N>> {
-  const {artifacts, ethers, upgrades} = await import("hardhat");
+  const {artifacts, ethers, upgrades} = await import("hardhat") as any;
   if (!networkId) networkId = (await ethers.provider.getNetwork()).chainId;
 
   const deployments = _loadDeployments(networkId);

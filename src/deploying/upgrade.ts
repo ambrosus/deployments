@@ -3,7 +3,7 @@ import * as fs from "fs";
 import {_loadDeployments,} from "../deployments";
 import {GetContractTypeFromFactory,} from "./common-types";
 import * as path from "path";
-import {UpgradeProxyOptions} from "@openzeppelin/hardhat-upgrades/src/utils";
+import {UpgradeProxyOptions} from "@openzeppelin/hardhat-upgrades/src/utils/options";
 
 
 interface UpgradeOptions<Factory> {
@@ -24,7 +24,7 @@ export async function upgrade<N extends ContractFactory>(
     signer,
   }: UpgradeOptions<N>
 ): Promise<GetContractTypeFromFactory<N>> {
-  const {ethers, upgrades} = await import("hardhat");
+  const {ethers, upgrades} = await import("hardhat") as any;
   if (!networkId) networkId = (await ethers.provider.getNetwork()).chainId;
 
   const deployments = _loadDeployments(networkId);
