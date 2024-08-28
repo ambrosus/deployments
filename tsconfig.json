@@ -4,15 +4,13 @@
     "module": "commonjs",
     "declaration": true,
     "sourceMap": true,
+    "declarationMap": true,
     "outDir": "./dist",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "baseUrl": "./",
-    "paths": {
-      "@airdao/deployments/*": ["src/*"]
-    }
+    "strict": false,
+    "rootDirs": ["./src"],
   },
   "include": ["src"],
-  "exclude": ["node_modules"]
+  "exclude": ["dist", "node_modules"]
 }
-

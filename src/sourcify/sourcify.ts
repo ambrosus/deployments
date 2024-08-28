@@ -1,6 +1,6 @@
-import {_loadDeployments} from "../deployments";
 import {HardhatRuntimeEnvironment} from "hardhat/types";
 import {parseFullyQualifiedName} from "hardhat/utils/contract-names";
+import { _loadDeployments } from "../deployments/deployments";
 
 const ENDPOINT = process.env.SOURCIFY_API || "https://sourcify.ambrosus.io/";
 
@@ -40,7 +40,7 @@ export async function sourcifyOne(
   hre: HardhatRuntimeEnvironment,
   fullyQualifiedName: string,
   address: string,
-  chainId: number,
+  chainId: bigint,
   name?: string
 ) {
   name = name || fullyQualifiedName;
@@ -67,7 +67,7 @@ export async function sourcifyOne(
 
 // INTERNAL
 
-async function isVerified(address: string, chainId: number): Promise<boolean> {
+async function isVerified(address: string, chainId: bigint): Promise<boolean> {
   const checkResponse = await fetch(
     `${ENDPOINT}checkByAddresses?addresses=${address.toLowerCase()}&chainIds=${chainId}`
   ).then((r) => r.json());
@@ -76,7 +76,7 @@ async function isVerified(address: string, chainId: number): Promise<boolean> {
 }
 
 async function verify(
-  chainId: number,
+  chainId: bigint,
   address: string,
   metadata: string
 ): Promise<string> {
@@ -121,5 +121,7 @@ async function loadMetadata(
 async function getBuildInfo(hre: HardhatRuntimeEnvironment, fullyQualifiedName: string): Promise<any> {
   if (fullyQualifiedName.includes("@openzeppelin/contracts/proxy/"))
     return require("@openzeppelin/upgrades-core/artifacts/build-info.json");
+  if (fullyQualifiedName.includes("@openzeppelin/contracts-v5/proxy/"))
+    return require("@openzeppelin/upgrades-core/artifacts/build-info-v5.json");
   return await hre.artifacts.getBuildInfo(fullyQualifiedName);
 }
