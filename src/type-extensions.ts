@@ -1,5 +1,5 @@
 import "hardhat/types/runtime";
-import { ContractFactory } from "ethers";
+import { Contract, ContractFactory, Signer } from "ethers";
 import { GetContractTypeFromFactory } from "./deploying/types";
 import { DeployOptions } from "./deploying/deploy";
 import { UpgradeOptions } from "./deploying/upgrade";
@@ -10,6 +10,7 @@ interface DeploymentsPlugin {
   upgrade<N extends ContractFactory>(upgradeOptions: UpgradeOptions<N>): Promise<GetContractTypeFromFactory<N>>
   sourcifyOne(fullyQualifiedName: string, address: string, chainId: bigint, name?: string): Promise<void>
   sourcifyAll(): Promise<void>
+  loadDeployment(contractName: string, networkId: bigint, signer?: Signer): Contract
 }
 
 declare module "hardhat/types/runtime" {
