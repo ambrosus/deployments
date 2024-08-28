@@ -1,9 +1,7 @@
 import { ContractFactory, Signer } from "ethers";
-import * as fs from "fs";
 import { GetContractTypeFromFactory, } from "./types";
-import * as path from "path";
 import { UpgradeProxyOptions } from "@openzeppelin/hardhat-upgrades/src/utils";
-import { _loadDeployments } from "../deployments/deployments";
+import { _loadDeployments, _saveDeployments } from "../deployments/deployments";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 
@@ -55,11 +53,7 @@ export function makeUpgrade(hre: HardhatRuntimeEnvironment) {
 
     deployments[contractName] = deployment;
 
-    const deploymentPath = path.resolve(
-      __dirname,
-      `../../../../../deployments/${networkId}.json`
-    );
-    fs.writeFileSync(deploymentPath, JSON.stringify(deployments, null, 2));
+   _saveDeployments(networkId, deployments);
 
     return contract as GetContractTypeFromFactory<N>;
   }
