@@ -1,39 +1,39 @@
-import {HardhatRuntimeEnvironment} from "hardhat/types";
-import {parseFullyQualifiedName} from "hardhat/utils/contract-names";
+import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { parseFullyQualifiedName } from "hardhat/utils/contract-names";
 import { _loadDeployments } from "../deployments/deployments";
+import { lazyObject } from "hardhat/plugins";
 
 const ENDPOINT = process.env.SOURCIFY_API || "https://sourcify.ambrosus.io/";
 
 export async function sourcifyAll(hre: HardhatRuntimeEnvironment) {
-  // @ts-ignore
-  const {chainId} = await hre.ethers.provider.getNetwork();
-  const deployments = _loadDeployments(chainId);
+    const { chainId } = await hre.ethers.provider.getNetwork();
+    const deployments = _loadDeployments(chainId);
 
-  for (const [contractName, deployment] of Object.entries(deployments))
-    if (deployment.proxy) {
-      await sourcifyOne(
-        hre,
-        deployment.proxy.fullyQualifiedName,
-        deployment.address,
-        chainId,
-        contractName + " Proxy"
-      );
-      await sourcifyOne(
-        hre,
-        deployment.fullyQualifiedName,
-        deployment.proxy.implementation,
-        chainId,
-        contractName
-      );
-    } else {
-      await sourcifyOne(
-        hre,
-        deployment.fullyQualifiedName,
-        deployment.address,
-        chainId,
-        contractName
-      );
-    }
+    for (const [contractName, deployment] of Object.entries(deployments))
+        if (deployment.proxy) {
+            await sourcifyOne(
+              hre,
+              deployment.proxy.fullyQualifiedName,
+              deployment.address,
+              chainId,
+              contractName + " Proxy"
+            );
+            await sourcifyOne(
+              hre,
+              deployment.fullyQualifiedName,
+              deployment.proxy.implementation,
+              chainId,
+              contractName
+            );
+        } else {
+            await sourcifyOne(
+              hre,
+              deployment.fullyQualifiedName,
+              deployment.address,
+              chainId,
+              contractName
+            );
+        }
 }
 
 export async function sourcifyOne(
@@ -43,36 +43,36 @@ export async function sourcifyOne(
   chainId: bigint,
   name?: string
 ) {
-  name = name || fullyQualifiedName;
+    name = name || fullyQualifiedName;
 
-  if (await isVerified(address, chainId)) {
-    console.log(`Already verified: ${name} (${address})`);
-    return;
-  }
+    if (await isVerified(address, chainId)) {
+        console.log(`Already verified: ${name} (${address})`);
+        return;
+    }
 
-  try {
-    console.info(`Verifying ${name} (${address} on chain ${chainId}) ...`);
-    const metadata = await loadMetadata(hre, fullyQualifiedName);
-    const result = await verify(chainId, address, metadata);
-    if (result == "perfect") console.info(`  Contract ${name} is now verified`);
-    if (result == "partial")
-      console.warn(`  Contract ${name} is now partial verified`);
-  } catch (e) {
-    console.error(
-      `  Failed to verify ${fullyQualifiedName} (${address})`,
-      ((e as any).response && JSON.stringify((e as any).response.data)) || e
-    );
-  }
+    try {
+        console.info(`Verifying ${name} (${address} on chain ${chainId}) ...`);
+        const metadata = await loadMetadata(hre, fullyQualifiedName);
+        const result = await verify(chainId, address, metadata);
+        if (result == "perfect") console.info(`  Contract ${name} is now verified`);
+        if (result == "partial")
+            console.warn(`  Contract ${name} is now partial verified`);
+    } catch (e) {
+        console.error(
+          `  Failed to verify ${fullyQualifiedName} (${address})`,
+          ((e as any).response && JSON.stringify((e as any).response.data)) || e
+        );
+    }
 }
 
 // INTERNAL
 
 async function isVerified(address: string, chainId: bigint): Promise<boolean> {
-  const checkResponse = await fetch(
-    `${ENDPOINT}checkByAddresses?addresses=${address.toLowerCase()}&chainIds=${chainId}`
-  ).then((r) => r.json());
+    const checkResponse = await fetch(
+      `${ENDPOINT}checkByAddresses?addresses=${address.toLowerCase()}&chainIds=${chainId}`
+    ).then((r) => r.json());
 
-  return checkResponse[0].status === "perfect";
+    return checkResponse[0].status === "perfect";
 }
 
 async function verify(
@@ -80,48 +80,50 @@ async function verify(
   address: string,
   metadata: string
 ): Promise<string> {
-  const data = {
-    address: address,
-    chain: chainId.toString(),
-    files: {"metadata.json": metadata},
-  };
+    const data = {
+        address: address,
+        chain: chainId.toString(),
+        files: { "metadata.json": metadata },
+    };
 
-  const submissionResponse = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(data),
-  }).then((r) => r.json());
+    const submissionResponse = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    }).then((r) => r.json());
 
-  if (submissionResponse.error) throw new Error(submissionResponse.error);
-  return submissionResponse.result[0].status;
+    if (submissionResponse.error) throw new Error(submissionResponse.error);
+    return submissionResponse.result[0].status;
 }
 
 async function loadMetadata(
   hre: HardhatRuntimeEnvironment,
   fullyQualifiedName: string
 ): Promise<string> {
-  const buildInfo = await getBuildInfo(hre, fullyQualifiedName);
-  const {sourceName, contractName} =
-    parseFullyQualifiedName(fullyQualifiedName);
+    const buildInfo = await getBuildInfo(hre, fullyQualifiedName);
+    let { sourceName, contractName } = parseFullyQualifiedName(fullyQualifiedName);
 
-  const metadataStr =
-    buildInfo.output.contracts[sourceName][contractName].metadata;
-  if (!metadataStr) throw `No metadata for contract ${fullyQualifiedName}`;
+    // don't know why, but '@openzeppelin/contracts-v5' contracts have sourceName that not match with the artifact path`
+    sourceName = sourceName.replace("@openzeppelin/contracts-v5/proxy/", "@openzeppelin/contracts/proxy/");
 
-  const metadata = JSON.parse(metadataStr);
-  Object.keys(metadata.sources).forEach((contractSource: string) => {
-    metadata.sources[contractSource].content =
-      buildInfo?.input.sources[contractSource].content;
-    delete metadata.sources[contractSource].urls;
-  });
+    const metadataStr =
+      buildInfo.output.contracts[sourceName][contractName].metadata;
+    if (!metadataStr) throw `No metadata for contract ${fullyQualifiedName}`;
 
-  return JSON.stringify(metadata);
+    const metadata = JSON.parse(metadataStr);
+    Object.keys(metadata.sources).forEach((contractSource: string) => {
+        metadata.sources[contractSource].content =
+          buildInfo?.input.sources[contractSource].content;
+        delete metadata.sources[contractSource].urls;
+    });
+
+    return JSON.stringify(metadata);
 }
 
 async function getBuildInfo(hre: HardhatRuntimeEnvironment, fullyQualifiedName: string): Promise<any> {
-  if (fullyQualifiedName.includes("@openzeppelin/contracts/proxy/"))
-    return require("@openzeppelin/upgrades-core/artifacts/build-info.json");
-  if (fullyQualifiedName.includes("@openzeppelin/contracts-v5/proxy/"))
-    return require("@openzeppelin/upgrades-core/artifacts/build-info-v5.json");
-  return await hre.artifacts.getBuildInfo(fullyQualifiedName);
+    if (fullyQualifiedName.includes("@openzeppelin/contracts/proxy/"))
+        return require("@openzeppelin/upgrades-core/artifacts/build-info.json");
+    if (fullyQualifiedName.includes("@openzeppelin/contracts-v5/proxy/"))
+        return require("@openzeppelin/upgrades-core/artifacts/build-info-v5.json");
+    return await hre.artifacts.getBuildInfo(fullyQualifiedName);
 }
