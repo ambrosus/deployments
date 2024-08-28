@@ -1,5 +1,4 @@
 import "hardhat/types/runtime";
-import "@nomiclabs/hardhat-ethers"
 import { ContractFactory } from "ethers";
 import { GetContractTypeFromFactory } from "./deploying/types";
 import { DeployOptions } from "./deploying/deploy";
