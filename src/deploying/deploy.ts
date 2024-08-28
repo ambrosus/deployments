@@ -25,7 +25,7 @@ export interface DeployOptions<Factory> {
 }
 
 
-export async function makeDeploy(hre: HardhatRuntimeEnvironment) {
+export function makeDeploy(hre: HardhatRuntimeEnvironment) {
   const { artifacts, ethers, upgrades } = hre;
 
 

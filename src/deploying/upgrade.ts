@@ -16,7 +16,7 @@ export interface UpgradeOptions<Factory> {
 }
 
 
-export async function makeUpgrade(hre: HardhatRuntimeEnvironment) {
+export function makeUpgrade(hre: HardhatRuntimeEnvironment) {
   const { ethers, upgrades } = hre;
 
 
