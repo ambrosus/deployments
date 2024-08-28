@@ -1,17 +1,17 @@
 {
   "name": "@airdao/deployments",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "",
   "repository": "github:ambrosus/deployments",
   "license": "MIT",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
   "files": [
-    "dist/src/",
+    "dist/",
     "src/",
     "LICENSE",
     "README.md"
