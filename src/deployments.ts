@@ -1,11 +1,13 @@
 import {Contract, ethers, Signer} from "ethers";
+import * as fs from 'fs';
+import * as path from 'path';
 
 type Deployments = { [name: string]: Deployment }
 type DeploymentsContracts = { [name: string]: Contract }
 
 export interface Deployment {
   address: string;
-  abi: any[];
+  abiPath: string;
   deployTx: string;
   fullyQualifiedName: string;
   proxy?: {
@@ -44,10 +46,17 @@ export function loadAllDeploymentsFromFile(deployments: Deployments, signer?: Si
 }
 
 export function _contractFromDeployment(deployment: Deployment, signer?: Signer): Contract {
-  return new ethers.Contract(deployment.address, deployment.abi, signer);
+  const abi = _loadAbiFromPath(deployment.abiPath);
+  return new ethers.Contract(deployment.address, abi, signer);
 }
 
 export function _loadDeployments(chainId: number): Deployments {
   const path = `../../../../deployments/${chainId}.json` // захист від вебпаку
   return require(path);
+}
+
+function _loadAbiFromPath(abiPath: string): any[] {
+  const absolutePath = path.resolve(__dirname, '../../../../deployments', abiPath);
+  const abiJson = fs.readFileSync(absolutePath, 'utf8');
+  return JSON.parse(abiJson);
 }

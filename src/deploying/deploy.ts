@@ -68,9 +68,27 @@ export async function deploy<N extends ContractFactory>(
 
   await contract.deployed();
 
+  // Save ABI to a separate file
+  const abiPath = path.resolve(
+    __dirname,
+    `../../../../../deployments/abis/${contractName}.json`
+  );
+  
+  // Ensure the abis directory exists
+  const abiDir = path.dirname(abiPath);
+  if (!fs.existsSync(abiDir)) {
+    fs.mkdirSync(abiDir, { recursive: true });
+  }
+
+  // Save ABI to file
+  fs.writeFileSync(
+    abiPath, 
+    JSON.stringify(contract.interface.format(), null, 2)
+  );
+
   const deployment: Deployment = {
     address: contract.address,
-    abi: contract.interface.format() as string[],
+    abiPath: `./abis/${contractName}.json`,
     deployTx: contract.deployTransaction.hash,
     fullyQualifiedName: fullyQualifiedName,
   };
