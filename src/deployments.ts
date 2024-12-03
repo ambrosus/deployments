@@ -18,6 +18,7 @@ export interface Deployment {
 
 export function loadDeployment(contractName: string, networkId: number, signer?: Signer): Contract {
   const deployments = _loadDeployments(networkId);
+  console.log(deployments)
   if (!deployments[contractName])
     throw new Error(
       `Can't find deployment for ${contractName} in network ${networkId}`

@@ -1,6 +1,5 @@
 import {ContractFactory, Signer} from "ethers";
 import * as fs from "fs";
-import * as path from "path";
 import {_loadDeployments,} from "../deployments";
 import {GetContractTypeFromFactory,} from "./common-types";
 import * as path from "path";
