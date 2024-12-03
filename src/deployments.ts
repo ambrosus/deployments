@@ -14,7 +14,11 @@ export interface Deployment {
     implementation: string;
     fullyQualifiedName: string;
   };
+  multisig?: {
+    address: string;  // Address of the associated multisig
+  };
 }
+
 
 export function loadDeployment(contractName: string, networkId: number, signer?: Signer): Contract {
   const deployments = _loadDeployments(networkId);
@@ -61,3 +65,4 @@ function _loadAbiFromPath(abiPath: string): any[] {
   const abiJson = fs.readFileSync(absolutePath, 'utf8');
   return JSON.parse(abiJson);
 }
+

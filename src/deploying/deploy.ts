@@ -1,11 +1,10 @@
-import {ContractFactory, Signer} from "ethers";
+import {Contract, ContractFactory, Signer, ContractTransaction} from "ethers";
 import * as fs from "fs";
-import {_contractFromDeployment, _loadDeployments, Deployment,} from "../deployments";
+import {_contractFromDeployment, _loadDeployments, loadDeployment, Deployment} from "../deployments";
 import {GetARGsTypeFromFactory, GetContractTypeFromFactory,} from "./common-types";
 import * as path from "path";
 import {getFullyQualifiedName} from "hardhat/utils/contract-names";
 import type {DeployProxyOptions} from "@openzeppelin/hardhat-upgrades/src/utils/options";
-
 
 // returns initialize method arguments type if contract has `initialize` method
 // otherwise returns constructor arguments type
@@ -14,6 +13,17 @@ type GetDeployArgsType<T> = GetContractTypeFromFactory<T> extends Initializable
   ? Parameters<GetContractTypeFromFactory<T>["initialize"]>
   : GetARGsTypeFromFactory<T>;
 
+
+export interface MultisigFactoryContract extends Contract {
+  createMultisig(
+    signers: string[],
+    isInitiatorFlags: boolean[],
+    threshold: number,
+    owner: string
+  ): Promise<ContractTransaction>;
+  registerMultisigs(multisigs: string[]): Promise<ContractTransaction>;
+  isRegisteredMultisig(multisig: string): Promise<boolean>;
+}
 
 interface DeployOptions<Factory> {
   contractName: string,  // The name under which to save the contract. Must be unique.
@@ -25,8 +35,33 @@ interface DeployOptions<Factory> {
 
   isUpgradeableProxy?: boolean,  // Deploy contract as upgradeable proxy
   proxyOptions?: DeployProxyOptions,  // Openzeppelin upgrades deploy options
+  
+  withMultisig?: {
+    name: string;  // Name for the multisig if new, or existing multisig name
+    settings?: MultisigSettings;  // Only needed for new multisig deployment
+  };
 }
 
+export interface MultisigSettings {
+  signers: string[];
+  isInitiatorFlags: boolean[];
+  threshold: number;
+  owner: string;
+}
+
+export function getMultisigFactory(networkId: number, signer?: Signer): MultisigFactoryContract {
+  return loadDeployment('MultisigFactory', networkId, signer) as MultisigFactoryContract;
+}
+
+function validateMultisigSettings(settings: MultisigSettings) {
+  if (settings.signers.length !== settings.isInitiatorFlags.length) {
+    throw new Error("Signers and initiator flags arrays must have the same length");
+  }
+
+  if (settings.threshold < 0 || settings.threshold > 100) {
+    throw new Error("Threshold must be between 0 and 100");
+  }
+}
 
 export async function deploy<N extends ContractFactory>(
   {
@@ -37,6 +72,7 @@ export async function deploy<N extends ContractFactory>(
     signer,
     loadIfAlreadyDeployed,
     isUpgradeableProxy,
+    withMultisig,
     proxyOptions = {kind: "uups"}
   }: DeployOptions<N>
 ): Promise<GetContractTypeFromFactory<N>> {
@@ -44,6 +80,41 @@ export async function deploy<N extends ContractFactory>(
   if (!networkId) networkId = (await ethers.provider.getNetwork()).chainId;
 
   const deployments = _loadDeployments(networkId);
+  let associatedMultisig: string | undefined;
+
+  if (withMultisig) {
+    // Check if multisig already exists in deployments
+    const existingMultisig = deployments[withMultisig.name];
+    
+    if (existingMultisig) {
+      associatedMultisig = existingMultisig.address;
+    } else if (withMultisig.settings) {
+      validateMultisigSettings(withMultisig.settings);
+      
+      // Deploy new multisig
+      const multisigFactory = loadDeployment('MultisigFactory', networkId, signer) as MultisigFactoryContract;
+      const tx = await multisigFactory.createMultisig(
+        withMultisig.settings.signers,
+        withMultisig.settings.isInitiatorFlags,
+        withMultisig.settings.threshold,
+        withMultisig.settings.owner
+      );
+      const receipt = await tx.wait();
+      const event = receipt.events?.find(e => e.event === 'MultisigCreated');
+      if (!event) throw new Error('MultisigCreated event not found');
+      associatedMultisig = event.args.multisig;
+      
+      // Save multisig as a deployment
+      deployments[withMultisig.name] = {
+        address: associatedMultisig,
+        abiPath: `./abis/Multisig.json`,
+        deployTx: tx.hash,
+        fullyQualifiedName: "Multisig"
+      };
+    } else {
+      throw new Error(`Multisig ${withMultisig.name} not found and no settings provided for deployment`);
+    }
+  }
 
   if (deployments[contractName]) {
     if (loadIfAlreadyDeployed) {
@@ -118,6 +189,12 @@ export async function deploy<N extends ContractFactory>(
     `../../../../../deployments/${networkId}.json`
   );
   fs.writeFileSync(deploymentPath, JSON.stringify(deployments, null, 2));
+
+  if (associatedMultisig) {
+    deployment.multisig = {
+      address: associatedMultisig
+    };
+  }
 
   return contract as GetContractTypeFromFactory<N>;
 }
