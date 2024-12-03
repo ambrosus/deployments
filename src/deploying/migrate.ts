@@ -30,11 +30,25 @@ export interface MigrationOptions {
 
 export async function migrateDeployments(options: MigrationOptions): Promise<void> {
   const { deploymentsDir } = options;
+  
+  // Validate deployments directory
+  if (!path.isAbsolute(deploymentsDir)) {
+    throw new Error('deploymentsDir must be an absolute path');
+  }
+  
+  if (!fs.existsSync(deploymentsDir)) {
+    throw new Error(`Deployments directory does not exist: ${deploymentsDir}`);
+  }
+
   const abisDir = options.abisDir || path.join(deploymentsDir, 'abis');
 
   // Get all deployment files
   const files = fs.readdirSync(deploymentsDir)
     .filter(file => file.endsWith('.json') && !isNaN(parseInt(file)));
+
+  if (files.length === 0) {
+    throw new Error(`No valid deployment files found in ${deploymentsDir}. Files should be named like "1.json", "2.json", etc.`);
+  }
 
   // Create abis directory if it doesn't exist
   if (!fs.existsSync(abisDir)) {
