@@ -1,6 +1,7 @@
 import {Contract, ethers, Signer} from "ethers";
 import * as fs from 'fs';
 import * as path from 'path';
+import {MultisigType} from "./deploying/multisig-types";
 
 type Deployments = { [name: string]: Deployment }
 type DeploymentsContracts = { [name: string]: Contract }
@@ -16,6 +17,7 @@ export interface Deployment {
   };
   multisig?: {
     address: string;  // Address of the associated multisig
+    type: MultisigType;
   };
 }
 

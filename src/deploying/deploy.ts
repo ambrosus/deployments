@@ -2,6 +2,7 @@ import {Contract, ContractFactory, Signer, ContractTransaction} from "ethers";
 import * as fs from "fs";
 import {_contractFromDeployment, _loadDeployments, loadDeployment, Deployment} from "../deployments";
 import {GetARGsTypeFromFactory, GetContractTypeFromFactory,} from "./common-types";
+import {MultisigType, getMultisigSettings} from "./multisig-types";
 import * as path from "path";
 import {getFullyQualifiedName} from "hardhat/utils/contract-names";
 import type {DeployProxyOptions} from "@openzeppelin/hardhat-upgrades/src/utils/options";
@@ -38,7 +39,7 @@ interface DeployOptions<Factory> {
   
   withMultisig?: {
     name: string;  // Name for the multisig if new, or existing multisig name
-    settings?: MultisigSettings;  // Only needed for new multisig deployment
+    type: MultisigType;  // Type of multisig to create if new
   };
 }
 
@@ -51,16 +52,6 @@ export interface MultisigSettings {
 
 export function getMultisigFactory(networkId: number, signer?: Signer): MultisigFactoryContract {
   return loadDeployment('MultisigFactory', networkId, signer) as MultisigFactoryContract;
-}
-
-function validateMultisigSettings(settings: MultisigSettings) {
-  if (settings.signers.length !== settings.isInitiatorFlags.length) {
-    throw new Error("Signers and initiator flags arrays must have the same length");
-  }
-
-  if (settings.threshold < 0 || settings.threshold > 100) {
-    throw new Error("Threshold must be between 0 and 100");
-  }
 }
 
 export async function deploy<N extends ContractFactory>(
@@ -80,39 +71,48 @@ export async function deploy<N extends ContractFactory>(
   if (!networkId) networkId = (await ethers.provider.getNetwork()).chainId;
 
   const deployments = _loadDeployments(networkId);
-  let associatedMultisig: string | undefined;
+  let associatedMultisig: { address: string, type: MultisigType } | undefined;
 
   if (withMultisig) {
     // Check if multisig already exists in deployments
     const existingMultisig = deployments[withMultisig.name];
     
     if (existingMultisig) {
-      associatedMultisig = existingMultisig.address;
-    } else if (withMultisig.settings) {
-      validateMultisigSettings(withMultisig.settings);
-      
-      // Deploy new multisig
+      associatedMultisig = {
+        address: existingMultisig.address,
+        type: existingMultisig.multisig!.type
+      };
+    } else {
+      const settings = getMultisigSettings(withMultisig.type, networkId);
       const multisigFactory = loadDeployment('MultisigFactory', networkId, signer) as MultisigFactoryContract;
+      
       const tx = await multisigFactory.createMultisig(
-        withMultisig.settings.signers,
-        withMultisig.settings.isInitiatorFlags,
-        withMultisig.settings.threshold,
-        withMultisig.settings.owner
+        settings.signers,
+        settings.isInitiatorFlags,
+        settings.threshold,
+        settings.owner
       );
+      
       const receipt = await tx.wait();
       const event = receipt.events?.find(e => e.event === 'MultisigCreated');
       if (!event) throw new Error('MultisigCreated event not found');
-      associatedMultisig = event.args.multisig;
+      
+      associatedMultisig = {
+        address: event.args.multisig,
+        type: withMultisig.type
+      };
       
       // Save multisig as a deployment
       deployments[withMultisig.name] = {
-        address: associatedMultisig,
+        address: associatedMultisig.address,
         abiPath: `./abis/Multisig.json`,
         deployTx: tx.hash,
-        fullyQualifiedName: "Multisig"
+        fullyQualifiedName: "Multisig",
+        multisig: {
+          address: associatedMultisig.address,
+          type: associatedMultisig.type
+        }
       };
-    } else {
-      throw new Error(`Multisig ${withMultisig.name} not found and no settings provided for deployment`);
     }
   }
 
@@ -192,7 +192,8 @@ export async function deploy<N extends ContractFactory>(
 
   if (associatedMultisig) {
     deployment.multisig = {
-      address: associatedMultisig
+      address: associatedMultisig.address,
+      type: associatedMultisig.type
     };
   }
 
