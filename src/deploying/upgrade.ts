@@ -45,7 +45,25 @@ export async function upgrade<N extends ContractFactory>(
   );
   console.log(`deployed ${contractName} at`, contract.address, "implementation at", implAddr);
 
-  deployment.abi = contract.interface.format() as string[];
+  // Save ABI to a separate file
+  const abiPath = path.resolve(
+    __dirname,
+    `../../../../../deployments/abis/${contractName}.json`
+  );
+  
+  // Ensure the abis directory exists
+  const abiDir = path.dirname(abiPath);
+  if (!fs.existsSync(abiDir)) {
+    fs.mkdirSync(abiDir, { recursive: true });
+  }
+
+  // Save ABI to file
+  fs.writeFileSync(
+    abiPath, 
+    JSON.stringify(contract.interface.format(), null, 2)
+  );
+
+  deployment.abiPath = `./abis/${contractName}.json`;
   deployment.proxy.implementation = implAddr;
 
   deployments[contractName] = deployment;
